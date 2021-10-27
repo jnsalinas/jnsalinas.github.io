@@ -27,7 +27,11 @@ if (input.Visits != null && input.Visits.Any ()) {
             itemEvidence.VisitId = itemVisit.Id;
             if (itemEvidence.Image != null) {
                 if (itemEvidence.Image.File != null) {
-                    itemEvidence.Image.Url = FileHelper.SaveFileInBlob ($"DerikuDeliveryApp/Files/{itemVisit.OrderId}/evidences/{(Guid.NewGuid() + ".jpg")}", itemEvidence.Image.File, _iConfiguration["BlobConfiguration:ConnectionString"], _iConfiguration["BlobConfiguration:BlobContainer"], _iConfiguration["BlobConfiguration:PathStorage"]);
+                    itemEvidence.Image.Url = FileHelper.SaveFileInBlob 
+                    ($"DerikuDeliveryApp/Files/{itemVisit.OrderId}/evidences/{(Guid.NewGuid() + ".jpg")}",
+                    itemEvidence.Image.File, _iConfiguration["BlobConfiguration:ConnectionString"], 
+                    _iConfiguration["BlobConfiguration:BlobContainer"],
+                    _iConfiguration["BlobConfiguration:PathStorage"]);
                 }
                 imageDA.InsertOrUpdate (itemEvidence.Image);
                 itemEvidence.ImageId = itemEvidence.Image.Id;
