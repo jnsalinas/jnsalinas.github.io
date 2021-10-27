@@ -1,34 +1,43 @@
 
-```csharp
-async Task _UpdateOrder () {
-    if (_userPreferencesDependency.GetStoredIntValue ("OrderTransito") > 0 && OrderStatus.Name == "En Transito") {
-        await App.Current.MainPage.DisplayAlert ("Alerta", "Verifique aun tiene una orden en transito ", "OK");
-        return;
+```typescript
+getOrders() {
+    this.showLoader = true;
+    let listItemFilters: ItemFilterVM[] = [];
+    if (this.formFilterOrder.controls.guideNumber.value) {
+        listItemFilters.push({
+            name: "OrderSerial",
+            value: this.formFilterOrder.controls.guideNumber.value
+        });
     }
-    if (OrderStatus.Name == "Confirmar Entrega") {
-        await NavigationService.NavigateToMaterAsync<ConfirmOrderViewModel> (Order);
-        return;
-    }
-    IsEnabledSave = false;
-    IsSave = true;
-    Order.StatusId = OrderStatus.Id;
-    InsertOrUpdateOrderIn insertOrUpdateOrderIn = _mapper.Map<InsertOrUpdateOrderIn> (Order);
-    BaseInsertOrUpdateOut baseInsertOrUpdate = await _orderWebServiceRepository.InserOrUpdateOrder (insertOrUpdateOrderIn);
-    if (baseInsertOrUpdate.Result == Result.Success) {
-        if (OrderStatus.Name == "En Transito") {
-            _userPreferencesDependency.StoreIntValue ("OrderTransito", Order.Id);
-            await Task.Delay (2000);
-            RegisterLocation (Order.Id);
-            DependencyService.Get<ILocationService> ().Start ();
 
-        }
-        IsSave = false;
-        DependencyService.Get<IMessage> ().ShortAlert ("Se actualizo correctamente la orden");
-        await _NavigateListOrders ();
-        return;
+    if (this.formFilterOrder.controls.orderSerial.value) {
+        listItemFilters.push({
+            name: "OrderSerial",
+            value: this.formFilterOrder.controls.guideNumber.value
+        });
     }
-    IsEnabledSave = true;
-    IsSave = false;
-    DependencyService.Get<IMessage> ().ShortAlert ("Ocurrio un error intente nuevamente o comuniquese con el administrador");
+
+    if (this.formFilterOrder.controls.statusId.value && this.formFilterOrder.controls.statusId.value != "0") {
+        listItemFilters.push({
+            name: "StatusId",
+            value: this.formFilterOrder.controls.statusId.value
+        });
+
+        this.formFilterOrder.controls.statusName.setValue(
+        this.listOrderStatus.filter(x => x.id == this.formFilterOrder.controls.statusId.value)[0].name);
+    } else {
+        this.formFilterOrder.controls.statusName.setValue("");
+    }
+
+    let filterGetOrder: GetAllOrdersIn = {
+        listItemFilters: listItemFilters,
+        page: 1,
+        toShow: 10
+    }
+
+    this.orderService.getOrder(filterGetOrder).subscribe(data => {
+        this.listOrder = data.listResult;
+        this.showLoader = false;
+    });
 }
 ```
