@@ -10,7 +10,8 @@ parameters.Markedsent = bool.Parse(_configuration.GetSection("ConsumeServiceData
 
 //Get info from service 
 string urlGetSrvice = _configuration.GetSection("UrlService:GetOrdersService").Value; 
-GetOrderServiceWCF.GetOrdersServiceClient client = new GetOrderServiceWCF.GetOrdersServiceClient(new GetOrderServiceWCF.GetOrdersServiceClient.EndpointConfiguration(), urlGetSrvice);
+GetOrderServiceWCF.GetOrdersServiceClient client = new GetOrderServiceWCF.GetOrdersServiceClient(
+              new GetOrderServiceWCF.GetOrdersServiceClient.EndpointConfiguration(), urlGetSrvice);
 Task<GetOrderServiceWCF.getOrderResponse> responseGetOrder = client.getOrderAsync(parameters); 
 GetOrderServiceWCF.getOrderResponse getOrderResponse = responseGetOrder.Result; 
 #endregion 
