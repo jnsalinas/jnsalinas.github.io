@@ -1,42 +1,18 @@
 
 ```typescript
-getOrders() {
+asignCourier() {
     this.showLoader = true;
-    let listItemFilters: ItemFilterVM[] = [];
-    if (this.formFilterOrder.controls.guideNumber.value) {
-        listItemFilters.push({
-            name: "OrderSerial",
-            value: this.formFilterOrder.controls.guideNumber.value
-        });
-    }
-
-    if (this.formFilterOrder.controls.orderSerial.value) {
-        listItemFilters.push({
-            name: "OrderSerial",
-            value: this.formFilterOrder.controls.guideNumber.value
-        });
-    }
-
-    if (this.formFilterOrder.controls.statusId.value && this.formFilterOrder.controls.statusId.value != "0") {
-        listItemFilters.push({
-            name: "StatusId",
-            value: this.formFilterOrder.controls.statusId.value
-        });
-
-        this.formFilterOrder.controls.statusName.setValue(
-        this.listOrderStatus.filter(x => x.id == this.formFilterOrder.controls.statusId.value)[0].name);
-    } else {
-        this.formFilterOrder.controls.statusName.setValue("");
-    }
-
-    let filterGetOrder: GetAllOrdersIn = {
-        listItemFilters: listItemFilters,
-        page: 1,
-        toShow: 10
-    }
-
-    this.orderService.getOrder(filterGetOrder).subscribe(data => {
-        this.listOrder = data.listResult;
+    this.itemSelected.userId = this.formAsignCourier.controls.user.value;
+    this.itemSelected.assignDateTime = new Date(this.formAsignCourier.controls.assignDateTime.value + ' ' + this.formAsignCourier.controls.assignTime.value);
+    this.itemSelected.statusId = this.listOrderStatus.filter(x => x.name == "Asignado")[0].id;
+    let updateOrderIn: InsertOrUpdateOrderIn = this.itemSelected;
+    this.orderService.insertOrUpdateOrder(updateOrderIn).subscribe(data => {
+        if (data.result == Result.Success) {
+            this.assigNewDataOrder(data);
+            this.toastr.success("Se asigno correctamente");
+            this.itemSelected = null;
+            this.modalService.dismissAll();
+        }
         this.showLoader = false;
     });
 }
