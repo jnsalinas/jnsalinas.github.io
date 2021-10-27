@@ -1,34 +1,34 @@
 
 ```csharp
-async Task _GetOrders() 
-{ 
-    IsRefreshing = true; 
-    ListOrders = new ObservableCollection<OrderVM>(); 
-    List<ItemFilterVM> ListItemFilters = new List<ItemFilterVM>(); 
-    ItemFilterVM itemFilter = new ItemFilterVM 
-    { 
-        Name = "OrderStatus.Name", 
-        Value = StatusOrder.GetFilter() 
-    }; 
+async Task _UpdateOrder () {
+    if (_userPreferencesDependency.GetStoredIntValue ("OrderTransito") > 0 && OrderStatus.Name == "En Transito") {
+        await App.Current.MainPage.DisplayAlert ("Alerta", "Verifique aun tiene una orden en transito ", "OK");
+        return;
+    }
+    if (OrderStatus.Name == "Confirmar Entrega") {
+        await NavigationService.NavigateToMaterAsync<ConfirmOrderViewModel> (Order);
+        return;
+    }
+    IsEnabledSave = false;
+    IsSave = true;
+    Order.StatusId = OrderStatus.Id;
+    InsertOrUpdateOrderIn insertOrUpdateOrderIn = _mapper.Map<InsertOrUpdateOrderIn> (Order);
+    BaseInsertOrUpdateOut baseInsertOrUpdate = await _orderWebServiceRepository.InserOrUpdateOrder (insertOrUpdateOrderIn);
+    if (baseInsertOrUpdate.Result == Result.Success) {
+        if (OrderStatus.Name == "En Transito") {
+            _userPreferencesDependency.StoreIntValue ("OrderTransito", Order.Id);
+            await Task.Delay (2000);
+            RegisterLocation (Order.Id);
+            DependencyService.Get<ILocationService> ().Start ();
 
-    ListItemFilters.Add(itemFilter); 
-    GetAllOrdersIn getAllOrdersIn = new GetAllOrdersIn { ListItemFilters = ListItemFilters }; 
-    GetAllOrdersOut getAllOrdersOut = await _orderWebServiceRepository.GetAllOrders(getAllOrdersIn); 
-    if (getAllOrdersOut.Result != Result.Success) 
-    { 
-        List<Expression<Func<OrderBE, object>>> includes = new List<Expression<Func<OrderBE, object>>>(); 
-        Expression<Func<OrderBE, object>> expressionUserType; 
-        expressionUserType = orderBE => orderBE.Client; 
-        includes.Add(expressionUserType); 
-        expressionUserType = orderBE => orderBE.OrderStatus; 
-        includes.Add(expressionUserType); 
-        ListOrders = _mapper.Map<ObservableCollection<OrderVM>>(await _orderDA.GetAll(includes)); 
-        IsRefreshing = false; 
-        return; 
-    } 
-
-    ListOrders = _mapper.Map<ObservableCollection<OrderVM>>(getAllOrdersOut.ListResult); 
-    IsRefreshing = false; 
-    await _UpdateOrdersLocal(getAllOrdersOut.ListResult).ConfigureAwait(false); 
-} 
+        }
+        IsSave = false;
+        DependencyService.Get<IMessage> ().ShortAlert ("Se actualizo correctamente la orden");
+        await _NavigateListOrders ();
+        return;
+    }
+    IsEnabledSave = true;
+    IsSave = false;
+    DependencyService.Get<IMessage> ().ShortAlert ("Ocurrio un error intente nuevamente o comuniquese con el administrador");
+}
 ```
