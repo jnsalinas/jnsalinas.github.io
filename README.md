@@ -1,20 +1,11 @@
 
 ```csharp
-#region Consume Service
-
-//Parameters
-GetOrderServiceWCF.Parametros  parameters = new  GetOrderServiceWCF.Parametros ();
-parameters.SenderId = _configuration.GetSection ("ConsumeServiceData:SenderId").Value;
-parameters.SenderQualifier = _configuration.GetSection ("ConsumeServiceData:SenderQualifier").Value;
-parameters.DocumentType = _configuration.GetSection ("ConsumeServiceData:DocumentType").Value;
-parameters.Markedsent = bool.Parse (_configuration.GetSection ("ConsumeServiceData:Markedsent").Value);
-
-//Get info from service
-string  urlGetSrvice = _configuration.GetSection ("UrlService:GetOrdersService").Value;
-GetOrderServiceWCF.GetOrdersServiceClient  client = new  GetOrderServiceWCF.GetOrdersServiceClient(
-  new GetOrderServiceWCF.GetOrdersServiceClient.EndpointConfiguration (), urlGetSrvice);
-Task<GetOrderServiceWCF.getOrderResponse> responseGetOrder = client.getOrderAsync (parameters);
-GetOrderServiceWCF.getOrderResponse  getOrderResponse = responseGetOrder.Result;
-
-#endregion
+OrderBE currentData = input.Id > 0 ? orderDA.GetFirstOrDefault (x => x.Id.Equals (input.Id)) : input;
+if (input.StatusId != currentData.StatusId || input.Id == 0) {
+    input.LogOrderStatus = input.LogOrderStatus == null ? new List<LogOrderStatusBE> () : input.LogOrderStatus;
+    input.LogOrderStatus.Add (new LogOrderStatusBE () {
+        OrderStatusId = input.StatusId,
+            CreationDate = DateTime.Now,
+    });
+}
 ```
